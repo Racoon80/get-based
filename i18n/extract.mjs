@@ -77,6 +77,10 @@ for (const file of files) {
   }
 }
 
+// Hand-maintained extras (lowercase literals, composed labels).
+const extras = path.join(root, 'i18n/extra-strings.json');
+if (fs.existsSync(extras)) for (const e of JSON.parse(fs.readFileSync(extras, 'utf8')).strings) strings.add(e);
+
 // Text the app rendered at runtime (i18n/harvest.mjs), if present.
 const harvested = path.join(root, 'i18n/harvested.json');
 if (fs.existsSync(harvested)) for (const h of JSON.parse(fs.readFileSync(harvested, 'utf8'))) add(h);

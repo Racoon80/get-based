@@ -51,7 +51,28 @@ export function textKey(text: string): string {
   return `#${h.toString(36)}`;
 }
 
-export function createUiTranslator(catalogue: UiCatalogue): UiTranslator {
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTH_INDEX = new Map<string, number>(MONTHS.flatMap((name, i) => [[name, i], [name.slice(0, 3), i]] as [string, number][]));
+MONTH_INDEX.set('Sept', 8);
+const DATE_RE = new RegExp(`\\b(${[...MONTH_INDEX.keys()].sort((a, b) => b.length - a.length).join('|')})\\.?(?: (\\d{1,2})(?!\\d|:))?(?:,? (\\d{4}))?\\b`, 'g');
+
+// English month dates the app formats with en-US ("Nov 12, 2026", "Mar 2021", "Nov 12")
+// are re-rendered with Intl in the UI language. A bare month word is left alone.
+export function localiseEnglishDates(text: string, locale: string): string {
+  return text.replace(DATE_RE, (match, month: string, day?: string, year?: string) => {
+    if (!day && !year) return match;
+    const index = MONTH_INDEX.get(month)!;
+    const date = new Date(Number(year ?? 2000), index, Number(day ?? 1));
+    const options: Intl.DateTimeFormatOptions = { month: month.length > 4 ? 'long' : 'short' };
+    if (day) options.day = 'numeric';
+    if (year) options.year = 'numeric';
+    return date.toLocaleDateString(locale, options);
+  });
+}
+
+export interface UiTranslatorOptions { dateLocale?: string }
+
+export function createUiTranslator(catalogue: UiCatalogue, options: UiTranslatorOptions = {}): UiTranslator {
   const exact = new Map<string, string>();
   // Templates are indexed by their first literal word to keep matching cheap.
   const templates = new Map<string, Template[]>();
@@ -72,6 +93,21 @@ export function createUiTranslator(catalogue: UiCatalogue): UiTranslator {
   function translateText(text: string): string | null {
     const key = normalise(text);
     if (!key || !/[A-Za-z]/.test(key)) return null;
+    let out = lookup(key);
+    // A leading arrow or symbol ("↑ +27.5% vs prev") should not block a match.
+    if (out === null) {
+      const m = key.match(/^([\u2190-\u21ff\u25b2-\u25bc\u2022\u2713\u2714\u26a0\ufe0f]+\s*)(.+)$/u);
+      if (m) { const rest = lookup(m[2]!); if (rest !== null) out = m[1] + rest; }
+    }
+    if (options.dateLocale) {
+      const base = out ?? key;
+      const dated = localiseEnglishDates(base, options.dateLocale);
+      if (dated !== base) return dated;
+    }
+    return out;
+  }
+
+  function lookup(key: string): string | null {
     const hit = exact.get(key) ?? exact.get(textKey(key));
     if (hit !== undefined) return hit;
     const first = key.match(/^([A-Za-z]+)/)?.[1];

@@ -9309,5 +9309,13 @@
  "Zonulin assay: {#0} ng/ml": "Zonulin-Assay: {#0} ng/ml",
  "µkat/l": "µkat/l",
  "µmol/l": "µmol/l",
- "µmol/L": "µmol/L"
+ "µmol/L": "µmol/L",
+ "{#0}% vs prev": "{#0}% vs. vorher",
+ "approaching upper range": "nähert sich der oberen Grenze",
+ "falling": "fallend",
+ "improving": "verbessernd",
+ "rising": "steigend",
+ "stable": "stabil",
+ "sudden low trend": "plötzlicher Abwärtstrend",
+ "worsening": "verschlechternd"
 }

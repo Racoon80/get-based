@@ -1,0 +1,18 @@
+{
+ "_comment": "UI labels that exist only as lowercase literals or are composed at runtime, so neither extract.mjs nor harvest.mjs finds them reliably.",
+ "strings": [
+  "approaching lower range",
+  "approaching upper range",
+  "falling below range",
+  "rising above range",
+  "sudden high trend",
+  "sudden low trend",
+  "stable",
+  "rising",
+  "falling",
+  "improving",
+  "worsening",
+  "{#0}% vs prev",
+  "Stable vs prev"
+ ]
+}

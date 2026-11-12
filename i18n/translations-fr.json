@@ -9309,5 +9309,13 @@
  "µmol/l": "µmol/l",
  "µmol/L": "µmol/L",
  "{#0} extended-only scores are outside the baseline coherence denominator.": "Les scores {#0} (étendus uniquement) sont en dehors du dénominateur de cohérence de référence.",
- "at checkout for {#0}% off.": "au moment du paiement pour {#0}% de réduction."
+ "at checkout for {#0}% off.": "au moment du paiement pour {#0}% de réduction.",
+ "{#0}% vs prev": "{#0}% par rapport au précédent",
+ "approaching upper range": "approche la limite supérieure",
+ "falling": "en baisse",
+ "improving": "en amélioration",
+ "rising": "en hausse",
+ "stable": "stable",
+ "sudden low trend": "tendance à la baisse soudaine",
+ "worsening": "aggravation"
 }

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest';
-import { createUiTranslator, observeUiTranslation, textKey } from '../js/i18n/dom-translate.js';
+import { createUiTranslator, localiseEnglishDates, observeUiTranslation, textKey } from '../js/i18n/dom-translate.js';
 
 const catalogue = {
   'Labs': 'Labor',
@@ -46,6 +46,26 @@ describe('numeric placeholders and joined labels', () => {
     expect(tr.translateText('Needs attention · sudden high trend')).toBe('À surveiller · hausse soudaine');
     expect(tr.translateText('Needs attention · Glucose')).toBe('À surveiller · Glucose');
     expect(tr.translateText('Foo · Bar')).toBeNull();
+  });
+});
+
+describe('dates and leading symbols', () => {
+  it('re-renders English month dates in the UI language and leaves bare month words', () => {
+    expect(localiseEnglishDates('Mar 2021 – Oct 2026', 'fr-FR')).toBe('mars 2021 – oct. 2026');
+    expect(localiseEnglishDates('Updated Nov 12, 2026', 'de-DE')).toBe('Updated 12. Nov. 2026');
+    expect(localiseEnglishDates('February 3, 2026', 'de-DE')).toBe('3. Februar 2026');
+    expect(localiseEnglishDates('Nov 12', 'fr-FR')).toBe('12 nov.');
+    expect(localiseEnglishDates('May I help?', 'de-DE')).toBe('May I help?');
+    expect(localiseEnglishDates('Nov 12:30', 'de-DE')).toBe('Nov 12:30');
+  });
+  it('combines catalogue text with localised dates', () => {
+    const tr = createUiTranslator({ 'Delete period starting {0}': 'Periode ab {0} löschen' }, { dateLocale: 'de-DE' });
+    expect(tr.translateText('Delete period starting Mar 3, 2026')).toBe('Periode ab 3. März 2026 löschen');
+    expect(tr.translateText('Jul 2024')).toBe('Juli 2024');
+  });
+  it('ignores a leading arrow when matching', () => {
+    const tr = createUiTranslator({ '{#0}% vs prev': '{#0} % ggü. vorher' });
+    expect(tr.translateText('↑ +27.5% vs prev')).toBe('↑ +27.5 % ggü. vorher');
   });
 });
 

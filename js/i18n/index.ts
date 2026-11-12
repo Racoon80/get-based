@@ -111,5 +111,5 @@ export async function startUiTranslation(): Promise<void> {
     import('./dom-translate.js'),
     locale === 'de' ? import('./locales/ui-de.js') : import('./locales/ui-fr.js'),
   ]);
-  observeUiTranslation(createUiTranslator(catalogue.ui));
+  observeUiTranslation(createUiTranslator(catalogue.ui, { dateLocale: intlLocale(locale) }));
 }
