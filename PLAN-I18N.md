@@ -2,7 +2,7 @@
 
 Fork: `Racoon80/get-based` (upstream `elkimek/get-based`, AGPL-3.0).
 Base: upstream `main` @ `2050237` (v1.3.9, 2026-11-10).
-Status: plan only. No code changed yet.
+Status: phase 1 (foundation) in progress on branch `i18n-de-fr`.
 
 ## 1. Starting point
 
@@ -59,13 +59,24 @@ API must work outside Svelte too.
   - plurals with `Intl.PluralRules`
   - `locale` as a Svelte store/rune plus a plain getter for `.ts` modules
   - `formatNumber`, `formatDate`, `formatDateShort` on top of `Intl`
-- Catalogues: `js/i18n/locales/en.json`, `de.json`, `fr.json`
+- Catalogues: `js/i18n/locales/en.ts`, `de.ts`, `fr.ts`
   - flat keys grouped by area, for example `nav.labs`, `clients.import_json`,
     `labs.status.needs_attention`
-  - `en.json` is the source of truth. A generated `.d.ts` makes `t()` keys
-    type-checked, so a typo fails `npm run typecheck`.
-- Language choice: setting key `getbased-locale` in `localStorage`. Set
-  `document.documentElement.lang` when it changes.
+  - `en.ts` is the source of truth (`as const`). Its keys form the
+    `MessageKey` type, so a typo in a `t()` call fails the type check without
+    a generator step. `de.ts`/`fr.ts` are `Partial<Record<MessageKey, string>>`.
+- Language choice: setting key `getbased-locale` in `localStorage`, picked in
+  Settings → Display. Changing it reloads the app, so every view renders once
+  in the new language instead of patching live DOM. `document.documentElement.lang`
+  is set at startup.
+- **Default stays English** until most of the UI is translated. The browser
+  language detection (`detectBrowserLocale`) exists but is switched on only
+  then; a half-translated first start would be worse than a consistent
+  English one.
+- Dates: call sites will use `toLocaleDateString(intlLocale(), …)`. English
+  maps to `en-US`, so English output stays byte-for-byte unchanged. Dates that
+  go into AI context (`lab-context-assembly`, `nutrition-summary-context`, EMF
+  serialisation) stay `en-US`. Postponed from phase 1, see §6a.
 - Alternative if upstream prefers a library: **Paraglide JS** (inlang). It is
   compile-time, tree-shaken, typed and works with static SvelteKit. Decide
   this together with upstream (§6, step 0).
@@ -78,7 +89,7 @@ fully usable in English.
 | # | Phase | Content | Size |
 |---|---|---|---|
 | 0 | Talk to upstream | Issue at `elkimek/get-based`: do they want i18n, library or in-house, key style | – |
-| 1 | Foundation | `js/i18n/`, language picker in Settings, `html lang`, replace all `'en-US'` / bare `toLocaleString()` with the i18n formatters, key-parity test | S |
+| 1 | Foundation | `js/i18n/`, language picker in Settings, `html lang`, key-parity test. **Done.** Date formatting moved to a later phase (§6a) | S |
 | 2 | Shell | Sidebar, header, Clients dialog, Settings, sync/relay screens, onboarding | M |
 | 3 | Labs and dashboard | Lab tables, marker cards, trends, status labels ("Needs attention", "Sudden high trend"), date range buttons, compare dates | M |
 | 4 | Marker catalogue | Names and categories of the ~210 markers plus custom-marker UI; `de`/`fr` names in `marker-terminology` so search works in all three languages | M |
@@ -119,6 +130,39 @@ Work per phase:
   source of a medical term.
 - **Missing translations** after an upstream merge: the English fallback keeps
   the UI usable. The key-parity test lists what is missing.
+
+## 6a. Lessons from phase 1: pinned sources
+
+Upstream guards much of the code with source-level contract tests. Changing a
+line in those modules fails tests even when behaviour is correct:
+
+- **Hash-pinned components.** `DisplaySettings.svelte` and
+  `SettingsToggle.svelte` are reference fixtures for the Svelte build tooling.
+  Their SHA-256 is pinned in `tests/helpers/display-settings-coverage-contract.ts`
+  and the native bundle must stay free of app imports. Phase 1 therefore
+  leaves them untouched and puts the language picker in a separate
+  `LanguageSettings.svelte`, mounted above them in the same tab.
+- **Legacy-equivalence tests.** Some modules (e.g. `emf-interpretation`,
+  `supplements`) are run in a `vm` sandbox against recorded fixtures, with
+  imports stripped. A new import there is "not defined" inside the sandbox.
+- **Text contracts.** Legacy tests grep component source for English text
+  (`'Guided Tour'`, `>Tips</label>`). Moving that text into a catalogue needs
+  the test to resolve `t('key')` first.
+- **Inventories.** New files must be added to `service-worker-assets.ts`
+  (offline precache) and change the digest in `scripts/dom-sink-policy.json`
+  (`node scripts/dom-sink-audit.mjs --write`) and `MODULE_MAP.md`
+  (`npm run architecture:build`).
+
+Consequence: localising the 22 `en-US` date sites, and translating most
+existing views, means updating upstream's reviewed fixtures and pins. That is
+only sensible together with the maintainer (issue #1717), not in the fork
+alone.
+
+Local build note: `/Volumes/GitLab` is an SMB share and cannot run the build
+tools (exit 126). Build and test in a local mirror
+(`~/Library/Caches/getbased-build`, `rsync` without `node_modules`/`.git`).
+Baseline on the untouched upstream commit (Node 25 instead of 24, no git
+history): 40 test files / 133 tests already fail; compare against that.
 
 ## 7. Deployment at blood.racoon.lu
 

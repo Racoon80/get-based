@@ -6,8 +6,14 @@ import { getTimeFormat } from './theme.js';
 import { isDebugMode } from './utils.js';
 import type { DisplayPreferences } from './settings-display-contract.js';
 import DisplaySettings, { mount, unmount, flushSync } from './components/DisplaySettings.svelte.native.js';
+// Each native component bundles its own Svelte runtime, so mount it with its own helpers.
+import LanguageSettings, { mount as mountLanguage, unmount as unmountLanguage, flushSync as flushLanguage } from './components/LanguageSettings.svelte.native.js';
+import { getLocale } from './i18n/index.js';
 
 let mounted: { refresh(next: DisplayPreferences): void } | null = null;
+// The language picker sits above the Display settings in the same tab. A
+// language change reloads the app, so it never needs a live refresh.
+let languageMounted: Record<string, unknown> | null = null;
 let mountedTarget: HTMLElement | null = null;
 
 function snapshot(): DisplayPreferences {
@@ -38,7 +44,12 @@ export function disposeDisplaySettingsPanel(): void {
     void unmount(mounted);
     flushSync();
   }
+  if (languageMounted) {
+    void unmountLanguage(languageMounted);
+    flushLanguage();
+  }
   mounted = null;
+  languageMounted = null;
   mountedTarget = null;
 }
 
@@ -52,6 +63,9 @@ export function mountDisplaySettingsPanel(): void {
   disposeDisplaySettingsPanel();
   mountedTarget = target;
   mounted = mount(DisplaySettings, { target, props: { initial: snapshot() } });
+  const anchor = target.firstChild;
+  languageMounted = mountLanguage(LanguageSettings, { target, ...(anchor ? { anchor } : {}), props: { current: getLocale() } });
   // Keep the legacy caller's synchronous DOM/focus and commit-receipt contract.
   flushSync();
+  flushLanguage();
 }

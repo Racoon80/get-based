@@ -103,6 +103,7 @@ import {
 } from './app-extension-runtime.js';
 import { disposeNutritionAISettings, getNutritionAISettingsView, mountNutritionAISettings } from './nutrition-ai-settings-component.js';
 import type { SettingsOperations, SettingsSnapshot } from '../types/settings.js';
+import { getLocale, isLocale, setLocale, t } from './i18n/index.js';
 const settingsWindow = window as unknown as Record<string, unknown>;
 
 const settingsRuntime: SettingsSnapshot = {
@@ -214,7 +215,7 @@ function isSettingsToggleAction(actionEl: HTMLElement) {
 
 async function commitDisplaySettingFromUI(command: () => Promise<unknown>) {
   try { await command(); updateSettingsUI(); }
-  catch { showNotification('The display preference could not be confirmed. Check the current setting before trying again.', 'error'); }
+  catch { showNotification(t('settings.display.commit_failed'), 'error'); }
 }
 
 async function handleSettingsClick(event: Event) {
@@ -272,6 +273,14 @@ async function handleSettingsClick(event: Event) {
   } else if (action === 'switch-range') {
     event.preventDefault();
     await commitDisplaySettingFromUI(() => switchRangeMode(actionEl.dataset.range || 'optimal'));
+  } else if (action === 'set-locale') {
+    event.preventDefault();
+    const locale = actionEl.dataset.locale;
+    if (!isLocale(locale) || locale === getLocale()) return;
+    try { setLocale(locale); }
+    catch { showNotification(t('settings.language.failed'), 'error'); return; }
+    // Reload so every view renders once in the new language.
+    globalThis.location.reload();
   } else if (action === 'set-time-format') {
     event.preventDefault();
     await commitDisplaySettingFromUI(() => setTimeFormat(actionEl.dataset.timefmt === '12h' ? '12h' : '24h'));

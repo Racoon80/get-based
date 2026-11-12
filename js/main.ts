@@ -1,5 +1,6 @@
 // main.js — Thin entry point
 
+import { applyDocumentLocale } from './i18n/index.js';
 import './app-extension-bootstrap.js';
 import './schema.js';
 import './constants.js';
@@ -18,6 +19,7 @@ import { installShellActionDelegates } from './shell-actions.js';
 import { startApp } from './startup-orchestrator.js';
 import { ensureAppShell } from './app-shell-component.js';
 
+applyDocumentLocale();
 ensureAppShell();
 installShellActionDelegates();
 startApp();

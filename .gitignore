@@ -4123,3 +4123,7 @@ tests/pwa/sveltekit-island-ownership.spec.js.map
 /js/marker-baseline.js
 
 /js/marker-chart-scale.js
+/js/i18n/index.js
+/js/i18n/locales/de.js
+/js/i18n/locales/en.js
+/js/i18n/locales/fr.js
