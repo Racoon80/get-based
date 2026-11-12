@@ -55,18 +55,19 @@ describe('SvelteKit resource policy', () => {
       maximumReferenceGrowthPercent: 5,
       resourceCountWarning: 550,
       reference: {
-        version: 'migration-candidate-7',
-        buildId: '2ce34ac3a293aca6c224df2f35dd193740d6c4cfafe619d93bc553c86feb90d1',
-        measuredAt: '2026-10-17',
-        resources: 493,
-        decodedBytes: 19172377,
+        // Fork re-baseline after adding the German/French UI catalogues (PLAN-I18N.md 6b).
+        version: 'fork-i18n-de-fr-1',
+        buildId: 'a8d126a75068c34a947b4bce5a763f84c583c71c0a88937589a8111aa0f553fc',
+        measuredAt: '2026-11-12',
+        resources: 499,
+        decodedBytes: 21027423,
       },
     });
-    const accepted = enforceSvelteKitResourceBudget(metrics(20130995), actual);
-    expect(accepted.checks.effectiveMaximumDecodedBytes).toBe(20130995);
+    const accepted = enforceSvelteKitResourceBudget(metrics(22078794), actual);
+    expect(accepted.checks.effectiveMaximumDecodedBytes).toBe(22078794);
     expect(accepted.checks.remainingDecodedBytes).toBe(0);
-    expect(() => enforceSvelteKitResourceBudget(metrics(20130996), actual))
-      .toThrow('5% reference-growth maximum 20130995');
+    expect(() => enforceSvelteKitResourceBudget(metrics(22078795), actual))
+      .toThrow('5% reference-growth maximum 22078794');
   });
 
   it('passes the exact growth boundary and rejects the next decoded byte', () => {

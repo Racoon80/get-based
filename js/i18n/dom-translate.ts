@@ -39,6 +39,17 @@ function normalise(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
 }
 
+// Catalogues key plain strings by a short hash ("#" + FNV-1a 32-bit, base 36) of the
+// English text to keep the offline bundle small. i18n/build-catalogue.mjs uses the same hash.
+export function textKey(text: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return `#${h.toString(36)}`;
+}
+
 export function createUiTranslator(catalogue: UiCatalogue): UiTranslator {
   const exact = new Map<string, string>();
   // Templates are indexed by their first literal word to keep matching cheap.
@@ -59,7 +70,7 @@ export function createUiTranslator(catalogue: UiCatalogue): UiTranslator {
   function translateText(text: string): string | null {
     const key = normalise(text);
     if (!key || !/[A-Za-z]/.test(key)) return null;
-    const hit = exact.get(key);
+    const hit = exact.get(key) ?? exact.get(textKey(key));
     if (hit !== undefined) return hit;
     const first = key.match(/^([A-Za-z]+)/)?.[1];
     for (const t of [...(first ? templates.get(first) ?? [] : []), ...anyStart]) {

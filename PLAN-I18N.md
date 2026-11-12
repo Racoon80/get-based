@@ -187,6 +187,11 @@ translates the **rendered** UI instead of the sources:
   content is skipped: inputs, editable areas, code, chat messages, notes and
   anything with `data-i18n-skip`. English sessions load none of this.
 
+Offline size: the DE/FR catalogues add ~1.85 MB to the offline precache. The fork
+re-baselined `scripts/sveltekit-resource-budget.json` (reference 21,027,423 bytes,
+measured 2026-11-12); the hard maximum of 22 MiB is unchanged. Plain strings are keyed
+by a short hash of the English text to keep the catalogues small.
+
 Refresh after an upstream merge: `node i18n/extract.mjs && node i18n/translate.mjs de
 && node i18n/translate.mjs fr && node i18n/build-catalogue.mjs` (only new strings
 are translated). The `t()` keys from phase 1 remain for new fork code. If

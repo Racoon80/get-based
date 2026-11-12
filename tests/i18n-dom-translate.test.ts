@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest';
-import { createUiTranslator, observeUiTranslation } from '../js/i18n/dom-translate.js';
+import { createUiTranslator, observeUiTranslation, textKey } from '../js/i18n/dom-translate.js';
 
 const catalogue = {
   'Labs': 'Labor',
@@ -28,6 +28,15 @@ describe('translateText', () => {
     expect(tr.translateText('Labs and more')).toBeNull();
     expect(tr.translateText('42')).toBeNull();
     expect(tr.translateText('')).toBeNull();
+  });
+});
+
+describe('hashed catalogue keys', () => {
+  it('finds plain strings stored under their short hash', () => {
+    const tr = createUiTranslator({ [textKey('Quick Markers')]: 'Schnell-Marker' });
+    expect(textKey('Quick Markers')).toMatch(/^#[0-9a-z]+$/);
+    expect(tr.translateText('  Quick   Markers ')).toBe('Schnell-Marker');
+    expect(tr.translateText('Quick Marker')).toBeNull();
   });
 });
 

@@ -10,10 +10,14 @@ for (const locale of ['de', 'fr'] as const) {
     }, locale);
     await page.goto('/app', { waitUntil: 'load' });
     await expect(page.locator('html')).toHaveAttribute('lang', locale);
-    const ui = await page.evaluate(async lang => (await import(`/js/i18n/locales/ui-${lang}.js`)).ui as Record<string, string>, locale);
     const label = 'Biology Scores';
-    test.skip(!ui[label], `catalogue has no ${label}`);
-    await expect(page.getByText(ui[label]!, { exact: true }).first()).toBeVisible();
+    const translated = await page.evaluate(async ([lang, text]) => {
+      const { ui } = await import(`/js/i18n/locales/ui-${lang}.js`);
+      const { textKey } = await import('/js/i18n/dom-translate.js');
+      return (ui[textKey(text)] ?? ui[text]) as string | undefined;
+    }, [locale, label] as const);
+    expect(translated, `catalogue has ${label}`).toBeTruthy();
+    await expect(page.getByText(translated!, { exact: true }).first()).toBeVisible();
     await expect(page.getByText(label, { exact: true })).toHaveCount(0);
   });
 }
