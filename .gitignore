@@ -4127,3 +4127,7 @@ tests/pwa/sveltekit-island-ownership.spec.js.map
 /js/i18n/locales/de.js
 /js/i18n/locales/en.js
 /js/i18n/locales/fr.js
+/js/i18n/dom-translate.js
+/js/i18n/locales/ui-de.js
+/js/i18n/locales/ui-fr.js
+i18n/.translate-*.log

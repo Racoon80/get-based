@@ -32,7 +32,7 @@ const APP_SHELL = [ // Includes dynamic chat and Knowledge Base modules for firs
   '/js/dashboard-key-trends-presentation.js', '/js/components/DashboardKeyTrends.svelte.html.js', '/js/components/DashboardGenomeWidget.svelte.html.js', '/js/theme-bootstrap.js', '/js/extra-theme-bootstrap.js',
   '/js/analytics-bootstrap.js', '/js/analytics-consent-rendering.js', '/js/components/AnalyticsConsentBody.svelte.html.js', '/js/legal-consent-bootstrap.js',
   '/js/service-worker-update.js', '/js/version-update-rendering.js', '/js/components/VersionUpdateBody.svelte.html.js', '/js/components/VersionUpdateCopy.svelte.html.js',
-  '/js/main.js', '/js/i18n/index.js', '/js/i18n/locales/en.js', '/js/i18n/locales/de.js', '/js/i18n/locales/fr.js', '/js/components/LanguageSettings.svelte.native.js',
+  '/js/main.js', '/js/i18n/index.js', '/js/i18n/locales/en.js', '/js/i18n/locales/de.js', '/js/i18n/locales/fr.js', '/js/i18n/dom-translate.js', '/js/i18n/locales/ui-de.js', '/js/i18n/locales/ui-fr.js', '/js/components/LanguageSettings.svelte.native.js',
   '/js/ts-state-ui-inline-style-map.generated.js', '/js/ts-static-ui-inline-style-map.generated.js',
   // PRODUCTION_BUNDLE_ASSETS_START
   // PRODUCTION_BUNDLE_ASSETS_END

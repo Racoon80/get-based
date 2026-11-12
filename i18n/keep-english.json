@@ -1,0 +1,10 @@
+{
+ "_comment": "UI strings the app reads back from the DOM (selectors, comparisons). They must stay English on screen. Entries match exactly; entries starting with ~ match as substring. Also default names the user can see as their own data (profile names).",
+ "strings": [
+  "Ask AI",
+  "Meals & Nutrition history",
+  "Meal details",
+  "~checking Local AI",
+  "Default"
+ ]
+}

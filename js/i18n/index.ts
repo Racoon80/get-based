@@ -101,3 +101,15 @@ export function tPlural(baseKey: string, count: number, params?: MessageParams):
 export function formatNumber(value: number, options?: Intl.NumberFormatOptions): string {
   return new Intl.NumberFormat(intlLocale(), options).format(value);
 }
+
+// Fork-only: translate the fixed English UI on screen (see dom-translate.ts). The catalogue
+// for the chosen language is loaded on demand, so English sessions load nothing extra.
+export async function startUiTranslation(): Promise<void> {
+  const locale = getLocale();
+  if (locale === 'en' || !globalThis.document || typeof MutationObserver === 'undefined') return;
+  const [{ createUiTranslator, observeUiTranslation }, catalogue] = await Promise.all([
+    import('./dom-translate.js'),
+    locale === 'de' ? import('./locales/ui-de.js') : import('./locales/ui-fr.js'),
+  ]);
+  observeUiTranslation(createUiTranslator(catalogue.ui));
+}

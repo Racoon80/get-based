@@ -164,6 +164,34 @@ tools (exit 126). Build and test in a local mirror
 Baseline on the untouched upstream commit (Node 25 instead of 24, no git
 history): 40 test files / 133 tests already fail; compare against that.
 
+## 6b. Phase 2 in the fork: DOM translation layer (2026-11-12)
+
+The maintainer had not answered #1717 yet, and editing hundreds of pinned
+components would conflict with every upstream update. The fork therefore
+translates the **rendered** UI instead of the sources:
+
+- `i18n/extract.mjs` collects the static English UI strings (Svelte markup and
+  attributes, markup in template literals, and user-facing TypeScript literals:
+  UI properties, notifications, errors, ternary labels). Text with expressions
+  becomes a template with `{0}`, `{1}` placeholders. Output: `i18n/strings.json`.
+- `i18n/translate.mjs de|fr` machine-translates them with the local Ollama
+  (`gemma4:26b`, glossary in the prompt, placeholder check, resumable).
+- `i18n/overrides-<lang>.json` holds reviewed terms that win over the machine
+  ("Clients" → "Profile"/"Profils", "Labs" → "Laborwerte"/"Analyses", …).
+- `i18n/keep-english.json` lists text the app reads back from the DOM
+  (selectors, comparisons); it stays English.
+- `i18n/build-catalogue.mjs` writes `js/i18n/locales/ui-<lang>.ts`, dropping
+  templates with fewer than 10 fixed letters (too generic to match safely).
+- `js/i18n/dom-translate.ts` replaces exact matches in text nodes and in
+  `title`/`placeholder`/`aria-label`/`alt` via a `MutationObserver`. User
+  content is skipped: inputs, editable areas, code, chat messages, notes and
+  anything with `data-i18n-skip`. English sessions load none of this.
+
+Refresh after an upstream merge: `node i18n/extract.mjs && node i18n/translate.mjs de
+&& node i18n/translate.mjs fr && node i18n/build-catalogue.mjs` (only new strings
+are translated). The `t()` keys from phase 1 remain for new fork code. If
+upstream accepts i18n later, the catalogues can seed real `t()` keys.
+
 ## 7. Deployment at blood.racoon.lu
 
 The self-hosted build (`Workbench/GetBased/deploy/Dockerfile.app`) currently
