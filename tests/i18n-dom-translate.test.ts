@@ -31,6 +31,24 @@ describe('translateText', () => {
   });
 });
 
+describe('numeric placeholders and joined labels', () => {
+  const tr = createUiTranslator({
+    '{#0}% vs prev': '{#0} % par rapport au précédent',
+    'Needs attention': 'À surveiller',
+    'sudden high trend': 'hausse soudaine',
+  });
+  it('matches numbers only where the template says {#n}', () => {
+    expect(tr.translateText('+27.5% vs prev')).toBe('+27.5 % par rapport au précédent');
+    expect(tr.translateText('-3,2% vs prev')).toBe('-3,2 % par rapport au précédent');
+    expect(tr.translateText('lots% vs prev')).toBeNull();
+  });
+  it('translates each part of a label joined with a middle dot', () => {
+    expect(tr.translateText('Needs attention · sudden high trend')).toBe('À surveiller · hausse soudaine');
+    expect(tr.translateText('Needs attention · Glucose')).toBe('À surveiller · Glucose');
+    expect(tr.translateText('Foo · Bar')).toBeNull();
+  });
+});
+
 describe('hashed catalogue keys', () => {
   it('finds plain strings stored under their short hash', () => {
     const tr = createUiTranslator({ [textKey('Quick Markers')]: 'Schnell-Marker' });

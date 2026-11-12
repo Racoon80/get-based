@@ -22,15 +22,19 @@ for (const lang of ['de', 'fr']) {
     ...(fs.existsSync(reviewed) ? JSON.parse(fs.readFileSync(reviewed, 'utf8')) : {}) };
   // Only strings the app still contains; identical translations add nothing.
   // Templates need enough fixed text to be specific; "{0} time" would match unrelated text.
-  const specific = en => !/\{\d+\}/.test(en) || (en.replace(/\{\d+\}/g, '').match(/\p{L}/gu) || []).length >= 10;
-  const entries = Object.entries(all).filter(([en, tr]) => strings.has(en) && tr && tr !== en && specific(en) && !keepEnglish(en))
+  // {#n} only matches numbers, so a few fixed letters are enough there.
+  const letters = en => (en.replace(/\{#?\d+\}/g, '').match(/\p{L}/gu) || []).length;
+  const specific = en => !/\{#?\d+\}/.test(en) || letters(en) >= (/\{\d+\}/.test(en) ? 10 : 3);
+  // English plural suffixes ("day{1}" -> "days") cannot be translated word by word.
+  const suffixPlaceholder = en => /\p{L}\{\d+\}/u.test(en);
+  const entries = Object.entries(all).filter(([en, tr]) => strings.has(en) && tr && tr !== en && specific(en) && !suffixPlaceholder(en) && !keepEnglish(en))
     .sort(([a], [b]) => a.localeCompare(b));
   // Plain strings are keyed by a short hash of the English text (same as textKey() in
   // js/i18n/dom-translate.ts); templates keep their source because it becomes a pattern.
   // A hash shared by two different strings falls back to the full English key.
   const hashes = new Map();
-  for (const [en] of entries) if (!/\{\d+\}/.test(en)) hashes.set(textKey(en), (hashes.get(textKey(en)) || 0) + 1);
-  const keyed = entries.map(([en, tr]) => [/\{\d+\}/.test(en) || hashes.get(textKey(en)) > 1 ? en : textKey(en), tr]);
+  for (const [en] of entries) if (!/\{#?\d+\}/.test(en)) hashes.set(textKey(en), (hashes.get(textKey(en)) || 0) + 1);
+  const keyed = entries.map(([en, tr]) => [/\{#?\d+\}/.test(en) || hashes.get(textKey(en)) > 1 ? en : textKey(en), tr]);
   // One line: the catalogue is generated data, and the repo caps source files at 800 lines.
   const body = JSON.stringify(Object.fromEntries(keyed));
   fs.writeFileSync(path.join(root, `js/i18n/locales/ui-${lang}.ts`),

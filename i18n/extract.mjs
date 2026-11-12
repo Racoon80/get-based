@@ -22,9 +22,9 @@ function add(raw) {
   if (/^[,;:)(\]\[.'"]/.test(s) || /'[\w.-]+':/.test(s) || /\b(as|_get\w*|Promise|undefined|null)\b\W*$/.test(s)) return;
   if (s.length < 2 || s.length > 400) return;
   if (!/[A-Za-z]{2}/.test(s)) return;                 // needs words
-  if (/[$`;=]|=>|\bfunction\b|\bconst\b/.test(s.replace(/\{\d+\}/g, ''))) return; // code, not text
-  if (/[{}]/.test(s.replace(/\{\d+\}/g, ''))) return;
-  if (!/[A-Za-z]{2}/.test(s.replace(/\{\d+\}/g, ''))) return;
+  if (/[$`;=]|=>|\bfunction\b|\bconst\b/.test(s.replace(/\{#?\d+\}/g, ''))) return; // code, not text
+  if (/[{}]/.test(s.replace(/\{#?\d+\}/g, ''))) return;
+  if (!/[A-Za-z]{2}/.test(s.replace(/\{#?\d+\}/g, ''))) return;
   if (/^[a-z0-9_.:/-]+$/.test(s)) return;             // ids, classes, keys, paths
   if (/^(https?:|mailto:|#|\/)/.test(s)) return;
   strings.add(s);
@@ -76,6 +76,10 @@ for (const file of files) {
     }
   }
 }
+
+// Text the app rendered at runtime (i18n/harvest.mjs), if present.
+const harvested = path.join(root, 'i18n/harvested.json');
+if (fs.existsSync(harvested)) for (const h of JSON.parse(fs.readFileSync(harvested, 'utf8'))) add(h);
 
 const out = [...strings].sort((a, b) => a.localeCompare(b));
 fs.writeFileSync(path.join(root, 'i18n/strings.json'), `${JSON.stringify(out, null, 1)}\n`);

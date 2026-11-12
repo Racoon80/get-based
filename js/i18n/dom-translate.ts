@@ -1,6 +1,7 @@
 // Fork-only UI translation layer: replaces fixed English UI text on screen with the chosen
 // language, without changing the upstream components (their sources are hash-pinned by tests).
-// Catalogues are keyed by the English text; templates use {0}, {1} … for dynamic parts.
+// Catalogues are keyed by the English text; templates use {0}, {1} … for any dynamic part
+// and {#0}, {#1} … for parts that can only be a number (e.g. "{#0}% vs prev").
 // User content is never touched: inputs, editable areas, code, and anything marked
 // data-i18n-skip are skipped, and only exact catalogue matches are replaced.
 
@@ -56,11 +57,12 @@ export function createUiTranslator(catalogue: UiCatalogue): UiTranslator {
   const templates = new Map<string, Template[]>();
   const anyStart: Template[] = [];
   for (const [source, target] of Object.entries(catalogue)) {
-    if (!/\{\d+\}/.test(source)) { exact.set(source, target); continue; }
-    const pattern = source.split(/(\{\d+\})/).map(part => (/^\{\d+\}$/.test(part) ? '(.+?)' : escapeRegex(part))).join('');
-    const order = [...source.matchAll(/\{(\d+)\}/g)].map(m => Number(m[1]));
+    if (!/\{#?\d+\}/.test(source)) { exact.set(source, target); continue; }
+    const pattern = source.split(/(\{#?\d+\})/).map(part => (/^\{#\d+\}$/.test(part) ? '([+\\-−]?\\d[\\d.,]*)'
+      : /^\{\d+\}$/.test(part) ? '(.+?)' : escapeRegex(part))).join('');
+    const order = [...source.matchAll(/\{(#?\d+)\}/g)].map(m => m[1]);
     // Rewrite the target's {n} to $k, where k is the capture position of {n} in the source.
-    const rewritten = target.replace(/\{(\d+)\}/g, (_, n: string) => `\u0000${order.indexOf(Number(n)) + 1}\u0000`);
+    const rewritten = target.replace(/\{(#?\d+)\}/g, (_, n: string) => `\u0000${order.indexOf(n) + 1}\u0000`);
     const entry = { regex: new RegExp(`^${pattern}$`, 's'), target: rewritten };
     const first = source.match(/^([A-Za-z]+)/)?.[1];
     if (first) (templates.get(first) ?? templates.set(first, []).get(first)!).push(entry);
@@ -77,7 +79,17 @@ export function createUiTranslator(catalogue: UiCatalogue): UiTranslator {
       const m = key.match(t.regex);
       if (m) return t.target.replace(/\u0000(\d+)\u0000/g, (_, k: string) => m[Number(k)] ?? '');
     }
+    // Labels joined at runtime ("Needs attention · sudden high trend"): translate each part.
+    if (key.includes(' · ')) {
+      const parts = key.split(' · ');
+      const translated = parts.map(part => translatePart(part));
+      if (translated.some((t, i) => t !== parts[i])) return translated.join(' · ');
+    }
     return null;
+  }
+
+  function translatePart(part: string): string {
+    return (part.includes(' · ') ? null : translateText(part)) ?? part;
   }
 
   function skipped(el: Element | null): boolean {

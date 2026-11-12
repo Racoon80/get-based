@@ -192,9 +192,19 @@ re-baselined `scripts/sveltekit-resource-budget.json` (reference 21,027,423 byte
 measured 2026-11-12); the hard maximum of 22 MiB is unchanged. Plain strings are keyed
 by a short hash of the English text to keep the catalogues small.
 
-Refresh after an upstream merge: `node i18n/extract.mjs && node i18n/translate.mjs de
-&& node i18n/translate.mjs fr && node i18n/build-catalogue.mjs` (only new strings
-are translated). The `t()` keys from phase 1 remain for new fork code. If
+Runtime text (round 2): labels the app composes at runtime (status chips, category
+names, marker names, "+27.5% vs prev") are not literal in the source. `i18n/harvest.mjs`
+opens the app in English with both demo profiles in Playwright, visits every sidebar
+view, marker details, all settings tabs and the profile list, and records the text it
+renders, plus marker names and category labels from the schema. Numbers become
+`{#n}` placeholders, which only match numbers at runtime, so short templates like
+`{#0}% vs prev` are safe; digits that belong to names (Omega-3, B12) stay. Labels
+joined with " · " are translated part by part.
+
+Refresh after an upstream merge (harvest needs a built checkout and a dev server):
+`node i18n/harvest.mjs http://127.0.0.1:8011` (in the build mirror), then
+`node i18n/extract.mjs && node i18n/translate.mjs de && node i18n/translate.mjs fr
+&& node i18n/build-catalogue.mjs` (only new strings are translated). The `t()` keys from phase 1 remain for new fork code. If
 upstream accepts i18n later, the catalogues can seed real `t()` keys.
 
 ## 7. Deployment at blood.racoon.lu

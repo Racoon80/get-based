@@ -30,7 +30,7 @@ lens/lenses = lentille/lentilles, insight = aperçu, trend = tendance, wearable 
 const PROMPT = items => `You translate the user interface of "getbased", a personal health and blood-work dashboard, from English to ${LANG}.
 Rules:
 - Translate every item. Return exactly ${items.length} translations in the same order.
-- Keep placeholders like {0}, {1} exactly as they are (they may move inside the sentence).
+- Keep placeholders like {0}, {1}, {#0}, {#1} exactly as they are (they may move inside the sentence).
 - Keep emojis, symbols (·, →, …, %), numbers, units (mg/dL, mmol/l, µkat/l, nm, lux), code, file names and
   product or brand names (getbased, Ollama, OpenRouter, Claude, Nostr, Cashu, Lightning, Evolu, Withings, Oura …) unchanged.
 - Keep short labels short (buttons, menu items, headings). Match the capitalisation style of the language.
@@ -50,7 +50,7 @@ async function ask(items) {
   return JSON.parse((await r.json()).message.content).translations;
 }
 
-const placeholders = s => (s.match(/\{\d+\}/g) || []).sort().join(',');
+const placeholders = s => (s.match(/\{#?\d+\}/g) || []).sort().join(',');
 const strings = JSON.parse(fs.readFileSync(path.join(root, 'i18n/strings.json'), 'utf8'));
 const outPath = path.join(root, `i18n/translations-${lang}.json`);
 const out = fs.existsSync(outPath) ? JSON.parse(fs.readFileSync(outPath, 'utf8')) : {};
